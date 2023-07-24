@@ -5,9 +5,10 @@ PROJECT_MODULE_NAME = ./src/dotnet/src/s3utillambda/
 
 build-hot-dotnet:
 	dotnet publish $(PROJECT_MODULE_NAME) \
-     --output /tmp/hot-reload/lambdas/dotnetlambda \
      --self-contained false \
-     -r linux-arm64
+     -r linux-`uname -m`
+	mkdir -p /tmp/hot-reload/lambdas/dotnetlambda
+	cp -f $(PROJECT_MODULE_NAME)bin/Debug/net6.0/linux-`uname -m`/publish/* /tmp/hot-reload/lambdas/dotnetlambda
 
 watch-dotnet:
 	bin/watchman.sh $(PROJECT_MODULE_NAME) "make build-hot"

@@ -24,9 +24,8 @@ After cloning this repo, from this working directory, run these commands:
 2. Create a Python venv and activate it
 
       ```bash
-      python3 -m venv venv
+      make setup-venv
       source venv/bin/activate
-      pip install -r requirements-dev.txt
       ```
 
 3. Start LocalStack in a terminal
