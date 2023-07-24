@@ -9,7 +9,7 @@ To deploy your infrastructure, follow the steps below.
 
 1. [Install Watchman](https://facebook.github.io/watchman/)
 2. [Install Pulumi](https://www.pulumi.com/docs/get-started/install/)
-3. [Configure AWS Credentials](https://www.pulumi.com/docs/intro/cloud-providers/aws/setup/)
+3. [Install LATEST AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
 ### Steps
 
@@ -39,16 +39,38 @@ After cloning this repo, from this working directory, run these commands:
 ![Start LocalStack](./docs/img/start-localstack.png "Start LocalStack")
 
 
-2. Build and publish the lambda function, making the output available to our Pulumi program. 
+4. Build and publish the lambda function, making the output available to our Pulumi program. 
 
     ```bash
     make build-hot-dotnet
     ```
+5. Setup an AWS_PROFILE for LocalStack
 
-2. Execute our Pulumi program to archive our published function output, and create our lambda. 
+#### Add this to your `~/.aws/config` file
+
+```text
+[profile localstack]
+region=us-east-1
+output=json
+endpoint_url = http://localhost:4566
+```
+
+#### Add this to your `~/.aws/credentials` file
+
+```text
+[localstack]
+aws_access_key_id=test
+aws_secret_access_key=test
+```
+
+5. Deploy to LocalStack with IaC 
+
+#### Terraform HSL
+
+[Install Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
 
     ```bash
-    pulumi up -C ./pulumi
+    make local-tformhcl-deploy
     ```
    OR
 
