@@ -62,100 +62,95 @@ aws_access_key_id=test
 aws_secret_access_key=test
 ```
 
-5. Deploy to LocalStack with IaC 
+6. Deploy to LocalStack with IaC 
 
 #### Terraform HSL
 
 [Install Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
 
+This will deploy S3 resources that the test Lambdas will use. It does not deploy the Lambdas, we'll cover that next.
+
     ```bash
     make local-tformhcl-deploy
     ```
-   OR
 
-    ```bash
-    pulumi up -C ./pulumi-node
-    ```
+## Testing Dotnet C# Lambda
+There are two ways to hot reload and live test your C# Lambda now.
+Using Visual Studio with the Lambda Test Tool, and deploying the Lambda to LocalStack with hot reloading.
+We'll cover both now.
 
+### Debugging Lambda in Visual Studio with Lambda Test Tool
+We'll run the Lambda in Visual Studio with full access to the debugger. 
+This is useful for deep debugging using the Visual Studio debugger with break points
 
-3. Call our Lambda function from the AWS CLI with "foo" as the payload.
+1. Open the `src/dotnet/src/s3utillambda/s3utillambda.csproj` file in Visual Studio. 
+!["Open Visual Studio"](./docs/img/open-visual-studio.png "Open Visual Studio")
 
-    ```bash
-    aws lambda invoke \
-    --function-name $(pulumi stack output Lambda -C ./pulumi) \
-    --region $(pulumi config get aws:region -C ./pulumi) \
-    --cli-binary-format raw-in-base64-out \
-    --payload '"foo"' \
-    output.json
+2. Configure Lambda Test Tool
 
-    cat output.json # view the output file with your tool of choice
-    # "FOO"
-    ```
+- [Windows config](https://github.com/aws/aws-lambda-dotnet/blob/master/Tools/LambdaTestTool/README.md#configure-for-visual-studio)
+- [Mac config](https://github.com/aws/aws-lambda-dotnet/blob/master/Tools/LambdaTestTool/README.md#configure-for-visual-studio-for-mac)
 
-6. From there, feel free to experiment. Simply making edits, rebuilding your handler, and running `pulumi up` will update your function.
+Opening the properties looks like this on a Mac.
+!["Open Project Properties"](./docs/img/open-props.png "Open Project Properties")
 
-7. Afterwards, destroy your stack and remove it:
-
-    ```bash
-    pulumi destroy --yes
-    pulumi stack rm --yes
-    ```
-
-
-# Hot Reload Setup
-
-## Prerequisites Without GDC
-1. You have LocalStack running
-2. You have dotnet6 installed
-3. Create a pyenv and source it.
-
-From the root of this project do:
-```shell
-make setup-venv
-source venv/bin/activate
+Configure the Lambda test tool per the Lambda Test Tool links in this step.
+On a Mac you point the external command to the `Amazon.Lambda.TestTool.BlazorTester.dll` file.
+Typically, in a location like
+```text
+/Users/<someuser>/.dotnet/tools/.store/amazon.lambda.testtool-6.0/0.13.1/amazon.lambda.testtool-6.0/0.13.1/tools/net6.0/any/Amazon.Lambda.TestTool.BlazorTester.dll
 ```
-4. Set this python venv as your venv for PyCharm (optional)
+Also add the two environment variables.
+!["Config Test Tool"](./docs/img/config-test-tool.png "Config Test Tool")
 
-If you're using PyCharm, you can just open this README in preview mode and click on the bash steps below.
+3. Debugging with Lambda Test Tool
+You can set break points in the function. Hit the run button to launch the test tool and invoke the Lambda.
+!["Invoke Lambda with Test Tool"](./docs/img/start-test-tool.png "Invoke Lambda with Test Tool")
 
+This launches the test tool on ["localhost:5050"](http://localhost:5050 "Invoke Lambda") where you can invoke the Lambda with no parameters.
+!["Invoke Lambda"](./docs/img/exec-lambda-test-tool.png "Invoke Lambda")
 
-## Dotnet Lambda Hot Reload
-1. Publish code from laptop 
-
-Doing this part from the laptop in order to publish the dotnet Lambda to a directory that is bind mountable by 
-DockerDesktop containers. This is needed because we'll then deploy the Lambda in hot-deploy mode to LocalStack.
-When LocalStack launches the Lambda, it will bind-mount the directory.
-This example is running DockerDesktop on a Mac ARM processor. Notice the `-r linux-arm64` below.
-Change this to `-r linux-x64` if you are on an intel architecture.
-
-From the aws-cs-lambda dir. Or you can just click on this in the README from PyCharm. Running the steps from PyCharm looks like this.
-
-![RunfStepsPycharm](../docs/img/cs-hot-reload-pycharm.png "Run Steps Pycharm")
+You can run this command to put some data in the S3 bucket so the Lambda actually returns some results.
 
 ```shell
- dotnet publish ./DotnetLambda/src/DotnetLambda/ \
- --output /tmp/hot-reload/lambdas/dotnetlambda \
- --self-contained false \
- -r linux-arm64
+make cp-readme
 ```
 
-2. Deploy to LocalStack
-This example is running DockerDesktop on a Mac ARM processor. Notice the `--architecture arm64` below.
-Remove the `--architecture` flag entirely if you are on an intel architecture.
+Then the invoke output will look like this
+!["Invoke Output"](./docs/img/invoke-output.png "Invoke Output")
+
+### Debugging C# Lambda with Hot-Deploy to LocalStack
+We'll deploy the C# Lambda to LocalStack using the CLI. 
+This is useful for test-driven development where you're testing a Lambda over and over again by running tests that invoke it.
+This development method runs the Lambda in a hot-deploy scenario. Changes to the Lambda are immediately redeployed to LocalStack.
+
+1. Publish the Lambda to a temp directory
 
 ```shell
-awslocal lambda create-function --function-name dotnetfunction \
---code S3Bucket="hot-reload",S3Key="/tmp/hot-reload/lambdas/dotnetlambda" \
---handler DotnetLambda::DotnetLambda.Function::FunctionHandler \
---runtime dotnet6 \
---architecture arm64 \
---role arn:aws:iam::000000000000:role/lambda-role
+make build-hot-dotnet
 ```
 
-3. Test Invoke
+2. Re-publish the dotnet build when code changes
 
 ```shell
-awslocal lambda invoke --function-name dotnetfunction \
---cli-binary-format raw-in-base64-out \
---payload '"Working with LocalStack is Fun"' output.txt
+make watch-dotnet
 ```
+
+3. Deploy function to LocalStack
+
+```shell
+make local-dotnet-deploy
+```
+
+4. Test Invoke
+
+```shell
+make local-dotnet-invoke
+```
+
+You can run this command to put some data in the S3 bucket so the Lambda actually returns some results.
+
+```shell
+make cp-readme
+```
+

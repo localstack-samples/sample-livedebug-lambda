@@ -21,7 +21,7 @@ public class Function
         {
             context.Logger.Log($"IDE Dev");
             AmazonS3Config config = new AmazonS3Config();
-            config.ServiceURL = "http://localhost:4566";
+            config.ServiceURL = "http://host.docker.internal:4566";
             config.ForcePathStyle = true;
 
             return new AmazonS3Client(new BasicAWSCredentials("test", "test"), config);
@@ -46,7 +46,7 @@ public class Function
         string bucketName = Environment.GetEnvironmentVariable(BucketVariableName);
         context.Logger.Log($"bucketName {bucketName}\n");
         AmazonS3Client _s3Client = GetS3Client(isIdeDev, context);
-        context.Logger.Log($"Testing the debugger");
+        context.Logger.Log($"Testing some output\n");
         var listObjectsRequest = new ListObjectsRequest
         {
             BucketName = bucketName
