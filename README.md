@@ -64,7 +64,7 @@ aws_secret_access_key=test
 
 6. Deploy to LocalStack with IaC 
 
-#### Terraform HSL
+#### Terraform HCL
 
 [Install Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
 
