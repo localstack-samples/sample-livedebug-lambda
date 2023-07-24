@@ -9,8 +9,7 @@ To deploy your infrastructure, follow the steps below.
 ### Prerequisites
 
 1. [Install Watchman](https://facebook.github.io/watchman/)
-2. [Install Pulumi](https://www.pulumi.com/docs/get-started/install/)
-3. [Install LATEST AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+2. [Install LATEST AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
 ### Steps
 
