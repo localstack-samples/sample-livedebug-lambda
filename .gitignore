@@ -85,4 +85,4 @@ output.txt
 *.csv
 
 .terraform*
-terraform.tfstate
+terraform.tfstate*

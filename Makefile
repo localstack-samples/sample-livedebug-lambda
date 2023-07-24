@@ -14,7 +14,13 @@ watch-dotnet:
 
 local-tformhcl-deploy:
 	echo "Deploying with Terraform HCL"
-	AWS_PROFILE=localstack terraform -chdir=iac/tformhcl init
-	AWS_PROFILE=localstack terraform -chdir=iac/tformhcl plan
+	source venv/bin/activate && AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) init
+	source venv/bin/activate && AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) plan
+	source venv/bin/activate && AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) apply
+
+setup-venv:
+	python3 -m venv venv
+	source venv/bin/activate && pip install -r requirements-dev.txt
+
 
 .PHONY: build-hot-dotnet watch-dotnet local-tformhcl-deploy

@@ -12,10 +12,12 @@ export PULUMI_BACKEND_URL ?= file:///root/shared/global-iac
 export AWS_ACCOUNT=000000000000
 export AWS_ACCOUNT_TYPE=LOCALSTACK
 export STACK_SUFFIX=local
+export TERRAFORM_CMD=terraform
 
 # Pattern specific variables for each pipeline
 local-%: export LOCALSTACK=1
-local-tformhsl%: export STACK_DIR=iac/tformhsl
+local-%: export TERRAFORM_CMD=tflocal
+local-tformhcl%: export STACK_DIR=iac/tformhcl
 
 
 uname_m := $(shell uname -m) # store the output of the command in a variable
