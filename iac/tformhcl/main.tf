@@ -4,7 +4,10 @@ terraform {
   }
 }
 
-provider "aws" {}
+provider "aws" {
+#  skip_requesting_account_id = true
+#  skip_credentials_validation = true
+}
 
 
 module "s3" {

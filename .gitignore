@@ -83,3 +83,6 @@ output.txt
 /.env-temp
 /.env-org
 *.csv
+
+.terraform*
+terraform.tfstate
