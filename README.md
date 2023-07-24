@@ -1,5 +1,6 @@
-# AWS C# Lambda
-This example creates an AWS Lambda function that does a simple `.ToUpper` on the string input and returns it. 
+# AWS Lambda Testing on LocalStack
+This example covers creating a C# dotnet Lambda, testing it in the Visual Studio debugger, and testing it on
+LocalStack with hot-reloading.
 
 ## Deploying the App
 
@@ -37,13 +38,7 @@ After cloning this repo, from this working directory, run these commands:
 
 ![Start LocalStack](./docs/img/start-localstack.png "Start LocalStack")
 
-
-4. Build and publish the lambda function, making the output available to our Pulumi program. 
-
-    ```bash
-    make build-hot-dotnet
-    ```
-5. Setup an AWS_PROFILE for LocalStack
+4. Setup an AWS_PROFILE for LocalStack
 
 #### Add this to your `~/.aws/config` file
 
@@ -62,7 +57,7 @@ aws_access_key_id=test
 aws_secret_access_key=test
 ```
 
-6. Deploy to LocalStack with IaC 
+5. Deploy to LocalStack with IaC 
 
 #### Terraform HCL
 
