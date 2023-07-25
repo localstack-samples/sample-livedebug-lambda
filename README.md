@@ -77,6 +77,12 @@ We'll cover both now.
 We'll run the Lambda in Visual Studio with full access to the debugger. 
 This is useful for deep debugging using the Visual Studio debugger with break points
 
+Make sure to deploy the resources the Lambda needs.
+
+    ```bash
+    make local-tformhcl-deploy
+    ```
+
 1. Open the `src/dotnet/src/s3utillambda/s3utillambda.csproj` file in Visual Studio. 
 !["Open Visual Studio"](./docs/img/open-visual-studio.png "Open Visual Studio")
 
@@ -117,6 +123,12 @@ Then the invoke output will look like this
 We'll deploy the C# Lambda to LocalStack using the CLI. 
 This is useful for test-driven development where you're testing a Lambda over and over again by running tests that invoke it.
 This development method runs the Lambda in a hot-deploy scenario. Changes to the Lambda are immediately redeployed to LocalStack.
+
+Make sure to deploy the resources the Lambda needs.
+
+    ```bash
+    make local-tformhcl-deploy
+    ```
 
 1. Publish the Lambda to a temp directory
 
