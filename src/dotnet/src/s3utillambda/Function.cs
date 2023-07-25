@@ -46,7 +46,7 @@ public class Function
         string bucketName = Environment.GetEnvironmentVariable(BucketVariableName);
         context.Logger.Log($"bucketName {bucketName}\n");
         AmazonS3Client _s3Client = GetS3Client(isIdeDev, context);
-        context.Logger.Log($"Testing some output\n");
+        context.Logger.Log($"Testing 1 2 3\n");
         var listObjectsRequest = new ListObjectsRequest
         {
             BucketName = bucketName

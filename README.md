@@ -79,9 +79,9 @@ This is useful for deep debugging using the Visual Studio debugger with break po
 
 Make sure to deploy the resources the Lambda needs.
 
-    ```bash
-    make local-tformhcl-deploy
-    ```
+```shell
+ make local-tformhcl-deploy
+```
 
 1. Open the `src/dotnet/src/s3utillambda/s3utillambda.csproj` file in Visual Studio. 
 !["Open Visual Studio"](./docs/img/open-visual-studio.png "Open Visual Studio")
@@ -126,9 +126,9 @@ This development method runs the Lambda in a hot-deploy scenario. Changes to the
 
 Make sure to deploy the resources the Lambda needs.
 
-    ```bash
-    make local-tformhcl-deploy
-    ```
+```shell
+ make local-tformhcl-deploy
+```
 
 1. Publish the Lambda to a temp directory
 
