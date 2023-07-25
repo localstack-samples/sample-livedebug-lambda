@@ -27,7 +27,7 @@ cp-readme:
 	source venv/bin/activate && awslocal s3 cp README.md s3://sample-bucket/README.md
 
 local-dotnet-deploy:
-	awslocal lambda create-function --function-name dotnetfunction \
+	AWS_PROFILE=localstack aws lambda create-function --function-name dotnetfunction \
 	--code S3Bucket="hot-reload",S3Key="/tmp/hot-reload/lambdas/dotnetlambda" \
 	--handler s3utillambda::s3utillambda.Function::FunctionHandler \
 	--runtime dotnet6 \
@@ -37,7 +37,7 @@ local-dotnet-deploy:
 	--role arn:aws:iam::000000000000:role/lambda-role
 
 local-dotnet-invoke:
-	awslocal lambda invoke --function-name dotnetfunction \
+	AWS_PROFILE=localstack aws lambda invoke --function-name dotnetfunction \
 --cli-binary-format raw-in-base64-out \
 --payload '{"arg":"Working with LocalStack is Fun"}' output.txt
 
