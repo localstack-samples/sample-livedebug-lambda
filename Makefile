@@ -24,7 +24,7 @@ setup-venv:
 	source venv/bin/activate && pip install -r requirements-dev.txt
 
 cp-readme:
-	source venv/bin/activate && awslocal s3 cp README.md s3://sample-bucket/README.md
+	AWS_PROFILE=localstack aws s3 cp README.md s3://sample-bucket/README.md
 
 local-dotnet-deploy:
 	AWS_PROFILE=localstack aws lambda create-function --function-name dotnetfunction \
