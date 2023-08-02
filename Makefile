@@ -19,9 +19,9 @@ local-tformhcl-deploy:
 	source venv/bin/activate && AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) plan
 	source venv/bin/activate && AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) apply
 
-setup-venv:
-	python3 -m venv venv
-	source venv/bin/activate && pip install -r requirements-dev.txt
+start-localstack: venv
+	($(VENV_RUN); DEBUG=1 localstack start)
+
 
 cp-readme:
 	AWS_PROFILE=localstack aws s3 cp README.md s3://sample-bucket/README.md

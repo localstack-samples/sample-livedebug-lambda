@@ -23,6 +23,7 @@ dest/
 
 # Virtual environment
 venv/
+.venv
 venv-mac
 
 **/.DS_Store

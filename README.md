@@ -21,23 +21,14 @@ After cloning this repo, from this working directory, run these commands:
       export LOCALSTACK_API_KEY=<your key>
       ```
 
-2. Create a Python venv and activate it
+2. Start LocalStack
 
       ```bash
-      make setup-venv
-      source venv/bin/activate
+      make start-localstack
       ```
-
-3. Start LocalStack in a terminal
-
-      ```bash
-      source venv/bin/activate
-      localstack start
-      ```
-
 ![Start LocalStack](./docs/img/start-localstack.png "Start LocalStack")
 
-4. Setup an AWS_PROFILE for LocalStack
+3. Setup an AWS_PROFILE for LocalStack
 
 #### Add this to your `~/.aws/config` file
 
@@ -56,7 +47,7 @@ aws_access_key_id=test
 aws_secret_access_key=test
 ```
 
-5. Deploy to LocalStack with IaC 
+4. Deploy to LocalStack with IaC 
 
 #### Terraform HCL
 
@@ -64,9 +55,9 @@ aws_secret_access_key=test
 
 This will deploy S3 resources that the test Lambdas will use. It does not deploy the Lambdas, we'll cover that next.
 
-    ```bash
-    make local-tformhcl-deploy
-    ```
+ ```bash
+ make local-tformhcl-deploy
+ ```
 
 ## Testing Dotnet C# Lambda
 There are two ways to hot reload and live test your C# Lambda now.
