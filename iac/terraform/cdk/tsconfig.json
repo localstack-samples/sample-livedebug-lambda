@@ -7,7 +7,8 @@
     "inlineSourceMap": true,
     "inlineSources": true,
     "lib": [
-      "esnext"
+      "esnext",
+      "dom"
     ],
     "module": "CommonJS",
     "noEmitOnError": true,

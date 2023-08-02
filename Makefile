@@ -3,6 +3,14 @@
 BUILD_FOLDER ?= build
 PROJECT_MODULE_NAME = ./src/dotnet/src/s3utillambda/
 
+
+local-cdktf-install: cdktfinstall
+local-cdktf-deploy: cdktfdeploy
+local-cdktf-destroy: cdktfdestroy
+
+non-cdktf-deploy: cdktfdeploy
+non-cdktf-destroy: cdktfdestroy
+
 build-hot-dotnet:
 	dotnet publish $(PROJECT_MODULE_NAME) \
      --self-contained false \
@@ -15,9 +23,9 @@ watch-dotnet:
 
 local-tformhcl-deploy:
 	echo "Deploying with Terraform HCL"
-	source venv/bin/activate && AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) init
-	source venv/bin/activate && AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) plan
-	source venv/bin/activate && AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) apply
+	$(VENV_RUN); AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) init
+	$(VENV_RUN); AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) plan
+	$(VENV_RUN); AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) apply
 
 start-localstack: venv
 	($(VENV_RUN); DEBUG=1 localstack start)
@@ -40,6 +48,16 @@ local-dotnet-invoke:
 	AWS_PROFILE=localstack aws lambda invoke --function-name dotnetfunction \
 --cli-binary-format raw-in-base64-out \
 --payload '{"arg":"Working with LocalStack is Fun"}' output.txt
+
+
+cdktfdeploy:
+	cd $(STACK_DIR) && cdktf deploy $(TFSTACK_NAME)
+
+cdktfdestroy:
+	cd $(STACK_DIR) && cdktf destroy $(TFSTACK_NAME)
+
+cdktfinstall:
+	cd $(STACK_DIR) && npm install
 
 
 .PHONY: build-hot-dotnet watch-dotnet local-tformhcl-deploy cp-readme local-dotnet-deploy local-dotnet-invoke

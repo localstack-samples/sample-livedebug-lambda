@@ -40,7 +40,10 @@ export TERRAFORM_CMD=terraform
 local-%: export LOCALSTACK=1
 local-%: export TERRAFORM_CMD=tflocal
 local-tformhcl%: export STACK_DIR=iac/terraform/hcl
+local-cdktf%: export STACK_DIR=iac/terraform/cdk
 
 
 uname_m := $(shell uname -m) # store the output of the command in a variable
 export LOCAL_ARCH=$(uname_m)
+
+export TFSTACK_NAME=LsLambdaSample.$(STACK_SUFFIX)

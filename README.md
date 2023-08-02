@@ -11,6 +11,24 @@ To deploy your infrastructure, follow the steps below.
 1. [Install Watchman](https://facebook.github.io/watchman/)
 2. [Install LATEST AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
+
+3. Install Node Version Manager (NVM)
+   https://github.com/nvm-sh/nvm#installing-and-updating
+
+4. Select Node version 18
+
+```shell
+nvm install 18
+```
+
+5. Install Terraform CDK
+Install cdktf in the node 18 version you just installed in step (4).
+
+```shell
+npm install --global cdktf-cli@latest
+```
+
+
 ### Steps
 
 After cloning this repo, from this working directory, run these commands:
@@ -47,7 +65,7 @@ aws_access_key_id=test
 aws_secret_access_key=test
 ```
 
-4. Deploy to LocalStack with IaC 
+## Deploy to LocalStack with IaC 
 
 #### Terraform HCL
 
