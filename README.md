@@ -65,7 +65,24 @@ aws_access_key_id=test
 aws_secret_access_key=test
 ```
 
-## Deploy to LocalStack with IaC 
+# Deploy to LocalStack with IaC 
+
+## Terraform CDK IaC Instructions
+
+### Install pipeline packages
+
+You need to do this initially, and if you manually add packages to `iac/terraform/cdk/package.json`
+
+```shell
+make local-cdktf-install
+```
+
+### Deploy Terraform CDK IaC Stack
+
+```shell
+make local-cdktf-deploy
+```
+
 
 #### Terraform HCL
 

@@ -1,33 +1,67 @@
 import {Construct} from "constructs";
-import {App, TerraformStack, S3Backend} from "cdktf";
+import {App, TerraformStack, S3Backend, TerraformAsset, AssetType} from "cdktf";
 import {AwsProvider} from "@cdktf/provider-aws/lib/provider";
 // import {EcrRepository} from "@cdktf/provider-aws/lib/ecr-repository"
-import * as Null from "@cdktf/provider-null";
-// import * as path from 'path';
+// import * as Null from "@cdktf/provider-null";
+import * as path from 'path';
 // import {hashFolder} from "./hashing";
 import {endpoints} from "./ls-endpoints";
 import {TerraformOutput} from "cdktf/lib";
-import {S3Bucket} from "@cdktf/provider-aws/lib/s3-bucket";
+import {S3Bucket,} from "@cdktf/provider-aws/lib/s3-bucket";
+
+import * as aws from "@cdktf/provider-aws";
+import * as random from "@cdktf/provider-random";
+
 
 (async () => {
-
-    // const dockerAppDir: string = path.resolve() + '/../../../app';
-    // const dockerAppHash: string = await hashFolder(dockerAppDir);
-    // console.log(dockerAppHash);
 
     interface MyMultiStackConfig {
         isLocal: boolean;
         environment: string;
+        handler: string;
+        runtime: string;
+        hotreloadLambdaPath: string;
+        listBucketName: string;
+        version: string;
         region?: string;
     }
+
+
+    const lambdaRolePolicy = {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Action": "sts:AssumeRole",
+                "Principal": {
+                    "Service": "lambda.amazonaws.com"
+                },
+                "Effect": "Allow",
+                "Sid": ""
+            }
+        ]
+    };
 
 
     class MyStack extends TerraformStack {
         constructor(scope: Construct, id: string, config: MyMultiStackConfig) {
             super(scope, id);
             console.log('config', config);
+
+            let arch = 'arm64';
+            const localArch = process.env.LOCAL_ARCH;
+
+            if (config.isLocal && localArch == 'x86_64') {
+                arch = 'x86_64';
+            }
+            const lambdaDeployDir: string = path.resolve() + '/../../../app';
+            // const dockerAppHash: string = await hashFolder(dockerAppDir);
+            console.log(lambdaDeployDir);
+
+
             // Create NullProvider to run CMD Line
-            new Null.provider.NullProvider(this, 'Null');
+            // new Null.provider.NullProvider(this, 'Null');
+            new random.provider.RandomProvider(this, "random");
+
 
             // define resources here
             if (config.isLocal) {
@@ -57,15 +91,89 @@ import {S3Bucket} from "@cdktf/provider-aws/lib/s3-bucket";
                 });
             }
 
-            const sampleBucket = new S3Bucket(this, "sample-bucket", {
-                bucket: "sample-bucket"
+            // Create random value
+            const pet = new random.pet.Pet(this, "random-name", {
+                length: 4,
             });
+            console.log('ped seed ', pet);
+
+            // Create Lambda archive
+            const asset = new TerraformAsset(this, "lambda-asset", {
+                path: config.hotreloadLambdaPath,
+                type: AssetType.ARCHIVE, // if left empty it infers directory and file
+            });
+
+            // Create unique S3 bucket that hosts Lambda executable
+            const bucket = new aws.s3Bucket.S3Bucket(this, "lambda-bucket", {
+                bucketPrefix: `${config.listBucketName}-lambda`
+            });
+
+            // Upload Lambda zip file to newly created S3 bucket
+            const lambdaArchive = new aws.s3Object.S3Object(this, "lambda-archive", {
+                bucket: bucket.bucket,
+                key: `${config.version}/${asset.fileName}`,
+                source: asset.path, // returns a posix path
+            });
+
+            // Create Lambda role
+            const role = new aws.iamRole.IamRole(this, "lambda-exec", {
+                name: `livedebug-role-${pet.id}`,
+                assumeRolePolicy: JSON.stringify(lambdaRolePolicy)
+            });
+
+            // Add execution role for lambda to write to CloudWatch logs
+            new aws.iamRolePolicyAttachment.IamRolePolicyAttachment(this, "lambda-managed-policy", {
+                policyArn: 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
+                role: role.name
+            });
+
+            const listBucket = new S3Bucket(this, "list-bucket", {
+                bucket: config.listBucketName,
+            });
+
+            // Default to LocalStack hot-reload magic bucket name and prefix to docker mountable path
+            let lambdaBucketName = 'hot-reload';
+            let lambdaS3Key = config.hotreloadLambdaPath;
+            // If not Local, use actual S3 bucket and key
+            if (!config.isLocal) {
+                lambdaBucketName = bucket.bucket;
+                lambdaS3Key = lambdaArchive.key;
+            }
+            // Create Lambda function
+            const lambdaFunc = new aws.lambdaFunction.LambdaFunction(this, "livedebug-lambda", {
+                functionName: `livedebug-lambda-${pet.id}`,
+                architectures: [arch],
+                s3Bucket: lambdaBucketName,
+                s3Key: lambdaS3Key,
+                handler: config.handler,
+                runtime: config.runtime,
+                environment: {variables: {'BUCKET': listBucket.bucket}},
+                role: role.arn
+            });
+
+            // Create and configure API gateway
+            const api = new aws.apigatewayv2Api.Apigatewayv2Api(this, "livedebug", {
+                name: 'livedebug-api',
+                protocolType: "HTTP",
+                target: lambdaFunc.arn
+            });
+
+            new aws.lambdaPermission.LambdaPermission(this, "apigw-lambda", {
+                functionName: lambdaFunc.functionName,
+                action: "lambda:InvokeFunction",
+                principal: "apigateway.amazonaws.com",
+                sourceArn: `${api.executionArn}/*/*`,
+            });
+
+            new TerraformOutput(this, 'apigwUrl', {
+                value: api.apiEndpoint
+            });
+
 
             // Output the ECR Repository URL
             new TerraformOutput(this, "bucketName", {
-                value: sampleBucket.bucket,
+                value: listBucket.bucket,
             });
-
         }
     }
 
@@ -74,11 +182,21 @@ import {S3Bucket} from "@cdktf/provider-aws/lib/s3-bucket";
     new MyStack(app, "LsLambdaSample.local", {
         isLocal: true,
         environment: 'local',
+        handler: 's3utillambda::s3utillambda.Function::FunctionHandler',
+        runtime: 'dotnet6',
+        hotreloadLambdaPath: '/tmp/hot-reload/lambdas/dotnetlambda',
+        listBucketName: `my-biz-bucket-us-east-1`,
+        version: '0.0.1',
         region: 'us-east-1'
     });
     new MyStack(app, "LsLambdaSample.non", {
         isLocal: false,
         environment: 'non',
+        handler: 's3utillambda::s3utillambda.Function::FunctionHandler',
+        runtime: 'dotnet6',
+        hotreloadLambdaPath: '/tmp/hot-reload/lambdas/dotnetlambda',
+        listBucketName: `my-biz-bucket-us-east-1`,
+        version: '0.0.1',
         region: 'us-east-1'
     });
     app.synth();

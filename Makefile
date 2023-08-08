@@ -5,10 +5,12 @@ PROJECT_MODULE_NAME = ./src/dotnet/src/s3utillambda/
 
 
 local-cdktf-install: cdktfinstall
-local-cdktf-deploy: cdktfdeploy
+# Build dotnet project, deploy to LocalStack
+local-cdktf-deploy: build-hot-dotnet cdktfdeploy
 local-cdktf-destroy: cdktfdestroy
 
-non-cdktf-deploy: cdktfdeploy
+# Build dotnet project, deploy to AWS
+non-cdktf-deploy: build-hot-dotnet cdktfdeploy
 non-cdktf-destroy: cdktfdestroy
 
 build-hot-dotnet:
@@ -27,8 +29,13 @@ local-tformhcl-deploy:
 	$(VENV_RUN); AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) plan
 	$(VENV_RUN); AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) apply
 
-start-localstack: venv
-	($(VENV_RUN); DEBUG=1 localstack start)
+start-localstack:
+	docker compose up --detach
+#($(VENV_RUN); DEBUG=1 localstack start)
+
+stop-localstack:
+	docker compose down
+
 
 
 cp-readme:
