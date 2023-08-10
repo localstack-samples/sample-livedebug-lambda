@@ -26,22 +26,6 @@ import * as random from "@cdktf/provider-random";
         region?: string;
     }
 
-
-    const lambdaRolePolicy = {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Action": "sts:AssumeRole",
-                "Principal": {
-                    "Service": "lambda.amazonaws.com"
-                },
-                "Effect": "Allow",
-                "Sid": ""
-            }
-        ]
-    };
-
-
     class MyStack extends TerraformStack {
         constructor(scope: Construct, id: string, config: MyMultiStackConfig) {
             super(scope, id);
@@ -90,12 +74,38 @@ import * as random from "@cdktf/provider-random";
                     region: config.region
                 });
             }
-
-            // Create random value
-            const pet = new random.pet.Pet(this, "random-name", {
-                length: 4,
+            // Bucket the lambda is going to get a list of objects from
+            const listBucket = new S3Bucket(this, "list-bucket", {
+                bucket: config.listBucketName,
+                
             });
-            console.log('ped seed ', pet);
+
+            const lambdaAssumeRolePolicy = {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Action": "sts:AssumeRole",
+                        "Principal": {
+                            "Service": "lambda.amazonaws.com"
+                        },
+                        "Effect": "Allow",
+                        "Sid": ""
+                    },
+                ]
+            };
+
+            const lambdaListBucketPolicy = {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Action": ["s3:ListBucket"],
+                        "Sid": "AllowAccessObjectsToS3",
+                        "Effect": "Allow",
+                        "Resource": [`${listBucket.arn}/*`, listBucket.arn],
+                    },
+                ]
+            };
+
 
             // Create Lambda archive
             const asset = new TerraformAsset(this, "lambda-asset", {
@@ -117,8 +127,14 @@ import * as random from "@cdktf/provider-random";
 
             // Create Lambda role
             const role = new aws.iamRole.IamRole(this, "lambda-exec", {
-                name: `livedebug-role-${pet.id}`,
-                assumeRolePolicy: JSON.stringify(lambdaRolePolicy)
+                name: `livedebug-role`,
+                assumeRolePolicy: JSON.stringify(lambdaAssumeRolePolicy)
+            });
+
+            // Add ListBucket policy to Lambda role
+            new aws.iamRolePolicy.IamRolePolicy(this, "lambda-rolepolicy", {
+                role: role.name,
+                policy: JSON.stringify(lambdaListBucketPolicy)
             });
 
             // Add execution role for lambda to write to CloudWatch logs
@@ -127,9 +143,6 @@ import * as random from "@cdktf/provider-random";
                 role: role.name
             });
 
-            const listBucket = new S3Bucket(this, "list-bucket", {
-                bucket: config.listBucketName,
-            });
 
             // Default to LocalStack hot-reload magic bucket name and prefix to docker mountable path
             let lambdaBucketName = 'hot-reload';
@@ -141,7 +154,7 @@ import * as random from "@cdktf/provider-random";
             }
             // Create Lambda function
             const lambdaFunc = new aws.lambdaFunction.LambdaFunction(this, "livedebug-lambda", {
-                functionName: `livedebug-lambda-${pet.id}`,
+                functionName: `livedebug-lambda`,
                 architectures: [arch],
                 s3Bucket: lambdaBucketName,
                 s3Key: lambdaS3Key,

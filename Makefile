@@ -39,7 +39,7 @@ stop-localstack:
 
 
 cp-readme:
-	AWS_PROFILE=localstack aws s3 cp README.md s3://sample-bucket/README.md
+	AWS_PROFILE=localstack aws s3 cp README.md s3://my-biz-bucket-us-east-1/README.md
 
 local-dotnet-deploy:
 	AWS_PROFILE=localstack aws lambda create-function --function-name dotnetfunction \
@@ -53,6 +53,11 @@ local-dotnet-deploy:
 
 local-dotnet-invoke:
 	AWS_PROFILE=localstack aws lambda invoke --function-name dotnetfunction \
+--cli-binary-format raw-in-base64-out \
+--payload '{"arg":"Working with LocalStack is Fun"}' output.txt
+
+local-dotnet-ls-invoke:
+	AWS_PROFILE=localstack aws lambda invoke --function-name livedebug-lambda \
 --cli-binary-format raw-in-base64-out \
 --payload '{"arg":"Working with LocalStack is Fun"}' output.txt
 
