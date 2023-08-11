@@ -1,9 +1,9 @@
-# AWS Lambda Testing on LocalStack
+# AWS Lambda Testing on LocalStack and AWS Deploy
 
 This example covers creating a C# dotnet Lambda, testing it in the Visual Studio debugger, and testing it on
 LocalStack with hot-reloading.
 
-## Deploying the App
+## Deploying the App to LocalStack
 
 To deploy your infrastructure, follow the steps below.
 
@@ -79,7 +79,7 @@ You need to do this initially, and if you manually add packages to `iac/terrafor
 make local-cdktf-install
 ```
 
-### Deploy Terraform CDK IaC Stack
+### Deploy the Terraform CDK IaC Stack
 
 This will deploy the S3 bucket, Lambda in hot reload mode, all roles and policies.
 
