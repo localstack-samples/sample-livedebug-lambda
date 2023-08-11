@@ -49,7 +49,7 @@ non%: export LOGGING_LEVEL=INFO
 non%: export AWS_ACCOUNT_TYPE=NONPROD
 non%: export AWS_REGION=us-east-1
 non%: export STACK_SUFFIX=non
-
+non-cdktf%: export STACK_DIR=iac/terraform/cdk
 
 uname_m := $(shell uname -m) # store the output of the command in a variable
 export LOCAL_ARCH=$(uname_m)

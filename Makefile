@@ -1,4 +1,5 @@
 -include envs.makefile
+-include nonenv.makefile
 
 BUILD_FOLDER ?= build
 PROJECT_MODULE_NAME = ./src/dotnet/src/s3utillambda/
@@ -23,12 +24,6 @@ build-hot-dotnet:
 watch-dotnet:
 	bin/watchman.sh $(PROJECT_MODULE_NAME) "make build-hot-dotnet"
 
-local-tformhcl-deploy:
-	echo "Deploying with Terraform HCL"
-	$(VENV_RUN); AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) init
-	$(VENV_RUN); AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) plan
-	$(VENV_RUN); AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) apply
-
 start-localstack:
 	docker compose up --detach
 #($(VENV_RUN); DEBUG=1 localstack start)
@@ -36,25 +31,8 @@ start-localstack:
 stop-localstack:
 	docker compose down
 
-
-
 cp-readme:
-	AWS_PROFILE=localstack aws s3 cp README.md s3://my-biz-bucket-us-east-1/README.md
-
-local-dotnet-deploy:
-	AWS_PROFILE=localstack aws lambda create-function --function-name dotnetfunction \
-	--code S3Bucket="hot-reload",S3Key="/tmp/hot-reload/lambdas/dotnetlambda" \
-	--handler s3utillambda::s3utillambda.Function::FunctionHandler \
-	--runtime dotnet6 \
-	--timeout 15 \
-	--environment "Variables={BUCKET=sample-bucket,IS_IDE_DEV=1}" \
-	--architecture `uname -m` \
-	--role arn:aws:iam::000000000000:role/lambda-role
-
-local-dotnet-invoke:
-	AWS_PROFILE=localstack aws lambda invoke --function-name dotnetfunction \
---cli-binary-format raw-in-base64-out \
---payload '{"arg":"Working with LocalStack is Fun"}' output.txt
+	AWS_PROFILE=localstack aws s3 cp README.md s3://sample-bucket/README.md
 
 local-dotnet-ls-invoke:
 	AWS_PROFILE=localstack aws lambda invoke --function-name livedebug-lambda \
@@ -71,5 +49,32 @@ cdktfdestroy:
 cdktfinstall:
 	cd $(STACK_DIR) && npm install
 
+non-cp-readme:
+	aws s3 cp README.md s3://$(LIST_BUCKET_NAME)/README.md
+
+non-empty-bucket:
+	aws s3 rm s3://$(LIST_BUCKET_NAME) --recursive
+
+non-dotnet-invoke:
+	aws lambda invoke --function-name livedebug-lambda \
+--cli-binary-format raw-in-base64-out \
+--payload '{"arg":"Working with LocalStack is Fun"}' output.txt
+
+non-dotnet-ls-invoke:
+	aws lambda invoke --function-name livedebug-lambda \
+--cli-binary-format raw-in-base64-out \
+--payload '{"arg":"Working with LocalStack is Fun"}' output.txt
+
+
+
+
+
+
+
+local-tformhcl-deploy:
+	echo "Deploying with Terraform HCL"
+	$(VENV_RUN); AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) init
+	$(VENV_RUN); AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) plan
+	$(VENV_RUN); AWS_PROFILE=localstack $(TERRAFORM_CMD) -chdir=$(STACK_DIR) apply
 
 .PHONY: build-hot-dotnet watch-dotnet local-tformhcl-deploy cp-readme local-dotnet-deploy local-dotnet-invoke

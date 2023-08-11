@@ -77,7 +77,7 @@ import * as random from "@cdktf/provider-random";
             // Bucket the lambda is going to get a list of objects from
             const listBucket = new S3Bucket(this, "list-bucket", {
                 bucket: config.listBucketName,
-                
+
             });
 
             const lambdaAssumeRolePolicy = {
@@ -157,6 +157,7 @@ import * as random from "@cdktf/provider-random";
                 functionName: `livedebug-lambda`,
                 architectures: [arch],
                 s3Bucket: lambdaBucketName,
+                timeout: 15,
                 s3Key: lambdaS3Key,
                 handler: config.handler,
                 runtime: config.runtime,
@@ -164,25 +165,30 @@ import * as random from "@cdktf/provider-random";
                 role: role.arn
             });
 
+            // NOT BINDING THE LAMBDA TO APIGW NOW
             // Create and configure API gateway
-            const api = new aws.apigatewayv2Api.Apigatewayv2Api(this, "livedebug", {
-                name: 'livedebug-api',
-                protocolType: "HTTP",
-                target: lambdaFunc.arn
+            // const api = new aws.apigatewayv2Api.Apigatewayv2Api(this, "livedebug", {
+            //     name: 'livedebug-api',
+            //     protocolType: "HTTP",
+            //     target: lambdaFunc.arn
+            // });
+            //
+            // new aws.lambdaPermission.LambdaPermission(this, "apigw-lambda", {
+            //     functionName: lambdaFunc.functionName,
+            //     action: "lambda:InvokeFunction",
+            //     principal: "apigateway.amazonaws.com",
+            //     sourceArn: `${api.executionArn}/*/*`,
+            // });
+            //
+            // new TerraformOutput(this, 'apigwUrl', {
+            //     value: api.apiEndpoint
+            // });
+
+
+            // Output the ECR Repository URL
+            new TerraformOutput(this, "lambdaFuncName", {
+                value: lambdaFunc.functionName,
             });
-
-            new aws.lambdaPermission.LambdaPermission(this, "apigw-lambda", {
-                functionName: lambdaFunc.functionName,
-                action: "lambda:InvokeFunction",
-                principal: "apigateway.amazonaws.com",
-                sourceArn: `${api.executionArn}/*/*`,
-            });
-
-            new TerraformOutput(this, 'apigwUrl', {
-                value: api.apiEndpoint
-            });
-
-
             // Output the ECR Repository URL
             new TerraformOutput(this, "bucketName", {
                 value: listBucket.bucket,
@@ -198,7 +204,7 @@ import * as random from "@cdktf/provider-random";
         handler: 's3utillambda::s3utillambda.Function::FunctionHandler',
         runtime: 'dotnet6',
         hotreloadLambdaPath: '/tmp/hot-reload/lambdas/dotnetlambda',
-        listBucketName: `my-biz-bucket-us-east-1`,
+        listBucketName: `sample-bucket`,
         version: '0.0.1',
         region: 'us-east-1'
     });
@@ -208,7 +214,7 @@ import * as random from "@cdktf/provider-random";
         handler: 's3utillambda::s3utillambda.Function::FunctionHandler',
         runtime: 'dotnet6',
         hotreloadLambdaPath: '/tmp/hot-reload/lambdas/dotnetlambda',
-        listBucketName: `my-biz-bucket-us-east-1`,
+        listBucketName: process.env.LIST_BUCKET_NAME || 'placeholder-bucket',
         version: '0.0.1',
         region: 'us-east-1'
     });
