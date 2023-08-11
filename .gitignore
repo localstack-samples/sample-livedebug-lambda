@@ -23,6 +23,7 @@ dest/
 
 # Virtual environment
 venv/
+.venv
 venv-mac
 
 **/.DS_Store
@@ -86,3 +87,4 @@ output.txt
 
 .terraform*
 terraform.tfstate*
+nonenv.makefile
