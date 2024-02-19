@@ -3,15 +3,16 @@
 
 BUILD_FOLDER ?= build
 PROJECT_MODULE_NAME = ./src/dotnet/src/s3utillambda/
+PROJECT_MODULE_NAME2 = ./src/dotnet/src/sqstoddblambda/
 
 
 local-cdktf-install: cdktfinstall
 # Build dotnet project, deploy to LocalStack
-local-cdktf-deploy: build-hot-dotnet cdktfdeploy
+local-cdktf-deploy: build-hot-dotnet build-hot-dotnet2 cdktfdeploy
 local-cdktf-destroy: cdktfdestroy
 
 # Build dotnet project, deploy to AWS
-non-cdktf-deploy: build-hot-dotnet cdktfdeploy
+non-cdktf-deploy: build-hot-dotnet build-hot-dotnet2 cdktfdeploy
 non-cdktf-destroy: cdktfdestroy
 
 build-hot-dotnet:
@@ -20,6 +21,17 @@ build-hot-dotnet:
      -r linux-`uname -m`
 	mkdir -p /tmp/hot-reload/lambdas/dotnetlambda
 	cp -f $(PROJECT_MODULE_NAME)bin/Debug/net6.0/linux-`uname -m`/publish/* /tmp/hot-reload/lambdas/dotnetlambda
+
+build-hot-dotnet2:
+	dotnet publish $(PROJECT_MODULE_NAME2) \
+     --self-contained false \
+     -r linux-`uname -m`
+	mkdir -p /tmp/hot-reload/lambdas/sqstoddblambda
+	cp -f $(PROJECT_MODULE_NAME2)bin/Debug/net6.0/linux-`uname -m`/publish/* /tmp/hot-reload/lambdas/sqstoddblambda
+
+clean-hotreload:
+	rm -rf /tmp/hot-reload/lambdas/dotnetlambda
+	rm -rf /tmp/hot-reload/lambdas/sqstoddblambda
 
 watch-dotnet:
 	bin/watchman.sh $(PROJECT_MODULE_NAME) "make build-hot-dotnet"
@@ -48,6 +60,11 @@ cdktfdestroy:
 
 cdktfinstall:
 	cd $(STACK_DIR) && npm install
+
+local-cdktf-clean:
+	- cd $(STACK_DIR) && rm -rf terraform.Ls*
+	- cd $(STACK_DIR) && rm -rf cdktf.out
+
 
 non-cp-readme:
 	aws s3 cp README.md s3://$(LIST_BUCKET_NAME)/README.md
