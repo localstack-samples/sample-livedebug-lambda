@@ -1,7 +1,11 @@
 # AWS Lambda Testing on LocalStack and AWS Deploy
 
-This example covers creating a C# dotnet Lambda, testing it in the Visual Studio debugger, and testing it on
-LocalStack with hot-reloading.
+This example includes C# dotnet Lambdas, SQS, and DynamoDB. It demonstrates how to deploy
+multiple services to LocalStack and AWS. The DynamoDB table acts as a set of unique keys for objects in S3.
+The solution could be used as a starting point for a more complex solution that uses S3, DynamoDB, SQS, and Lambdas.
+For example, the unique set of keys in DynamoDB could be used by a batch job to process invoices, orders, etc.
+
+![Architecture](./docs/img/design.drawio.png "Architecture")
 
 ## Deploying the App to LocalStack
 
