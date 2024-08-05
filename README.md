@@ -38,10 +38,10 @@ npm install --global cdktf-cli@latest
 
 After cloning this repo, from this working directory, run these commands:
 
-1. Set your LocalStack pro key
+1. Set your LocalStack Auth Token
 
       ```bash
-      export LOCALSTACK_API_KEY=<your key>
+      export LOCALSTACK_AUTH_TOKEN=<your-auth-token>
       ```
 
 2. Start LocalStack
